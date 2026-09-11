@@ -1,0 +1,20 @@
+set mycue to "LOGR"
+tell application id "com.figure53.QLab.4" to tell front workspace
+	try
+		set mystring to q name of cue mycue
+		repeat while the length of mystring is less than 50
+			set mystring to " " & mystring
+		end repeat
+		set thesecs to (notes of cue "LOG4") - (notes of cue "LOG1")
+		
+		set the notes of cue "CALC1" to thesecs
+		start cue "CALC1"
+		delay 0.2
+		set the notes of cue mycue to the notes of cue "CALC1"
+		set the notes of cue "WRITE" to return & mystring & ": " & notes of cue mycue & return
+		start cue "WRITE"
+	end try
+	
+end tell
+
+
