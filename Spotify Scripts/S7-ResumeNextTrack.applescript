@@ -1,10 +1,13 @@
 -- S7 - Resume Next Track
--- Hard cut (no fade) to full volume and the next track.
+-- Hard cut (no fade) to the shared maxVolume setting and the next track.
 
-property maxVolume : 100
+use script "QLabUtilities"
+
+property maxVolumeDefault : 100
 
 tell application id "com.figure53.QLab.4" to tell front workspace
 	try
+		set maxVolume to (my getSetting("maxVolume", maxVolumeDefault)) as integer
 		tell application "Spotify"
 			set sound volume to maxVolume
 			play (next track)

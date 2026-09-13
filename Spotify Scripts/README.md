@@ -32,19 +32,60 @@ for on-screen "now playing" display and crossfading.
 | X3 | X3-SetCue12TargetToURL.applescript | Working (pending verification) — downloads current track's album art and sets it as a Video cue's media file; the exact QLab property name used (`file target`) needs confirming against your QLab version |
 | X4 | X4-SetCue11TextToCurrentTrackName.applescript | Working — writes the current track name into a Text cue |
 
+## Shared settings ("SETTINGS" cue)
+
+`S2`, `S3`, `S4`, `S5`, `S6`, `S7`, `S12`, `S13`, and `X2` read `maxVolume`,
+`fadeOutSeconds`, `fadeInSeconds`, and (for `X2`) `crossfadeLeadSeconds` from
+a memo cue named **`SETTINGS`**, if one exists in the workspace, instead of
+each having its own hardcoded value. This means you can change house volume
+or fade timing show-wide by editing one cue's Notes rather than every script.
+
+Add a memo cue named `SETTINGS` with Notes formatted as `key=value` pairs
+separated by `;`, e.g.:
+
+```
+maxVolume=100;fadeOutSeconds=5;fadeInSeconds=5;crossfadeLeadSeconds=5
+```
+
+If the `SETTINGS` cue doesn't exist yet (e.g. a workspace you haven't set
+this up in), every script falls back to its own `*Default` property at the
+top of the file, so nothing breaks — you just don't get show-wide control
+until you add the cue.
+
+This requires the shared library described below.
+
+## Shared library (QLabUtilities)
+
+`getSetting` (reads the `SETTINGS` cue above) and `fadeSpotifyVolume` (the
+volume ramp used by every fade script) now live in one file,
+`Shared Library/QLabUtilities.applescript`, instead of being pasted into
+every script that needs them. See that file's header comment for one-time
+install instructions (compile it in Script Editor, save into
+`~/Library/Script Libraries/`). Each script that uses it starts with
+`use script "QLabUtilities"`.
+
+**This hasn't been tested against a live QLab instance** — please verify
+`use script` resolves correctly from inside a QLab Script cue before relying
+on it in a show. The library file's header comment includes a fallback
+(`load script` with a hardcoded path) if it doesn't.
+
 ## Setup for a new show
 
-1. Copy the S-series cues you need into a dedicated cue list (e.g. "House
+1. Install the shared library once per machine (see "Shared library" above)
+   if it isn't already installed.
+2. Copy the S-series cues you need into a dedicated cue list (e.g. "House
    Music"), keeping each script's cue number as referenced by the others
    (`S3`/`S4`/`S9` read the *triggering* cue's own Notes, so those can live on
    any cue number — it's `X4`'s `targetCueNumber` property that needs to
    match a real Text cue in your show).
-2. `S3`, `S4`, `S9`, `S12`, `S13` expect specific Notes content:
+3. Add a `SETTINGS` memo cue (see "Shared settings" above) if you want
+   show-wide control over volume/fade timing; otherwise each script uses its
+   own `*Default` property.
+4. `S3`, `S4`, `S9`, `S12`, `S13` expect specific Notes content:
    - `S3`/`S4`: a Spotify track or playlist URI (e.g.
-     `spotify:playlist:37i9dQZF1F0sijgNaJdgit`)
+     `spotify:playlist:37i9dQZF1F0sijgNaJdgit`) — or leave Notes blank and
+     set the `houseTrack` property instead to always use a fixed value
    - `S9`: a plain number of seconds (e.g. `30`)
-3. Adjust the `maxVolume`, `fadeOutSeconds`, and `fadeInSeconds` properties at
-   the top of each script to match the venue/show.
 
 ## Design notes
 
@@ -53,11 +94,8 @@ for on-screen "now playing" display and crossfading.
   double-triggered cue, an accidental double-press), they'll fight over the
   same value. Not an issue in normal single-threaded use, but worth keeping
   in mind if you build anything that could overlap these cues.
-- All the fade scripts share one `fadeSpotifyVolume(startLevel, endLevel,
-  durationSeconds)` handler, pasted at the bottom of each script that needs
-  it (QLab Script cues don't share code between cues, so this is duplicated
-  by necessity — see the note in the main repo README about a shared library
-  approach if this becomes worth solving later).
+- All the fade scripts now share one `fadeSpotifyVolume` handler from the
+  `QLabUtilities` library instead of each having its own copy.
 
 ## Known limitations
 
@@ -67,9 +105,9 @@ for on-screen "now playing" display and crossfading.
   rather than fail silently, but won't recover on its own.
 - No protection against two fade cues firing back-to-back or concurrently
   (see Design notes above).
-- `X2` and `X3` are not included in the "fixed" set below — they need a
-  design decision before revising (see the open questions raised alongside
-  this README).
+- If the `QLabUtilities` library isn't installed on a machine, any script
+  starting with `use script "QLabUtilities"` will fail to compile/run —
+  install it first (see "Shared library" above).
 
 ## Changes from the original version
 
@@ -108,5 +146,11 @@ for on-screen "now playing" display and crossfading.
   `/Users/seth/Downloads/` path with `path to downloads folder`, so it works
   on any machine/user account, and added shell-quoting around the artwork
   URL for safety.
+- **Introduced the shared `SETTINGS` cue and `QLabUtilities` library.**
+  `maxVolume`, `fadeOutSeconds`, `fadeInSeconds`, and `crossfadeLeadSeconds`
+  are now read from one shared memo cue instead of being hardcoded per
+  script, and the `getSetting`/`fadeSpotifyVolume` handlers live in one
+  library file instead of being duplicated across S4/S5/S6/S12/S13/X2. See
+  "Shared settings" and "Shared library" above.
 - `X1` intentionally left as-is — it's a working proof of concept, not yet
   adopted into the main S-series scripts.
