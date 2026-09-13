@@ -17,6 +17,7 @@
 -- blocked for the entire wait.
 
 use script "QLabUtilities"
+use scripting additions
 
 property crossfadeTarget : "next track" -- special value "next track", or a Spotify track/playlist URI to crossfade into
 property crossfadeLeadSecondsDefault : 5

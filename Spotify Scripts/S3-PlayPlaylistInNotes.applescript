@@ -4,6 +4,7 @@
 -- below to override with a fixed value instead.
 
 use script "QLabUtilities"
+use scripting additions
 
 property houseTrack : "" -- leave blank to read from Notes; or set a Spotify URI here to always use it instead
 property maxVolumeDefault : 100 -- used if no SETTINGS cue exists yet, or it doesn't define maxVolume

@@ -6,6 +6,7 @@
 -- comes from this cue's Notes, or the houseTrack property override.
 
 use script "QLabUtilities"
+use scripting additions
 
 property houseTrack : "" -- leave blank to read from Notes; or set a Spotify URI here to always use it instead
 property maxVolumeDefault : 100

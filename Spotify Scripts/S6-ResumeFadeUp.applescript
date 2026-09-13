@@ -4,6 +4,7 @@
 -- present, falling back to the *Default properties otherwise.
 
 use script "QLabUtilities"
+use scripting additions
 
 property maxVolumeDefault : 100
 property fadeInSecondsDefault : 5

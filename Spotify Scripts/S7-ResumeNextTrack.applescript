@@ -2,6 +2,7 @@
 -- Hard cut (no fade) to the shared maxVolume setting and the next track.
 
 use script "QLabUtilities"
+use scripting additions
 
 property maxVolumeDefault : 100
 

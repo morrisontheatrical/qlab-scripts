@@ -4,6 +4,7 @@
 -- fadeOutSecondsDefault otherwise.
 
 use script "QLabUtilities"
+use scripting additions
 
 property fadeOutSecondsDefault : 5
 
