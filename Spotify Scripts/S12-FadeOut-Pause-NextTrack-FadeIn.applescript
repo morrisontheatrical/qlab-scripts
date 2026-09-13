@@ -1,30 +1,43 @@
+-- S12 - Fade Out / Pause / Next Track / Fade In
+-- Same fade-out fix as S4, but advances to the next track in the current
+-- Spotify queue/playlist rather than a track named in cue Notes.
+
+property maxVolume : 100
+property fadeOutSeconds : 5
+property fadeInSeconds : 5
+
 tell application id "com.figure53.QLab.4" to tell front workspace
-	
-	set houseTrack to notes of last item of (active cues as list)
-	--"spotify:playlist:3ac7KKFi3O1pnBzVPtj7SB?si=e65e05c230a94490"
-	
-	tell application "Spotify"
-		set fadetime to 5
-		repeat with volumeset from 0 to 100 as integer
-			set sound volume to 100 - volumeset
-			delay fadetime / 100
-		end repeat
-		pause
-		
-		
-		--set houseTrack to notes of currentCue as string
-		
-		
-		
-		
-		play (next track)
-		set currentvolume to the sound volume
-		repeat with i from currentvolume to 100 by 2
-			set the sound volume to i
-			delay 0.1
-		end repeat
-		
-	end tell
-	
-	
+	try
+		set startVol to sound volume of application "Spotify"
+		my fadeSpotifyVolume(startVol, 0, fadeOutSeconds)
+		tell application "Spotify" to pause
+
+		tell application "Spotify" to play (next track)
+		my fadeSpotifyVolume(0, maxVolume, fadeInSeconds)
+	on error errMsg
+		display dialog "S12 (Fade Out / Pause / Next Track / Fade In) failed: " & errMsg buttons {"OK"} default button 1 with icon caution
+	end try
 end tell
+
+on fadeSpotifyVolume(startLevel, endLevel, durationSeconds)
+	if startLevel = endLevel then return
+	if endLevel > startLevel then
+		set stepCount to endLevel - startLevel
+	else
+		set stepCount to startLevel - endLevel
+	end if
+	set stepDelay to durationSeconds / stepCount
+	tell application "Spotify"
+		if endLevel > startLevel then
+			repeat with v from startLevel to endLevel
+				set sound volume to v
+				delay stepDelay
+			end repeat
+		else
+			repeat with v from startLevel to endLevel by -1
+				set sound volume to v
+				delay stepDelay
+			end repeat
+		end if
+	end tell
+end fadeSpotifyVolume
